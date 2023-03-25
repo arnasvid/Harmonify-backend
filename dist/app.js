@@ -31,9 +31,11 @@ const express_1 = __importDefault(require("express"));
 const app = (0, express_1.default)();
 dotenv.config({ path: "../.env" });
 const port = process.env.PORT || 8080;
-app.get("/", (req, res) => {
-    res.send("Hello World!");
-});
+const cors = require("cors");
+app.use(cors());
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
+});
+app.get("/", (req, res) => {
+    res.send({ message: "We did it!" });
 });
