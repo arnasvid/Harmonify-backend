@@ -9,10 +9,9 @@ datasource db {
 
 model User {
     id       Int      @id @default(autoincrement()) @db.Integer
-    name     String
-    email    String   @unique
     username String   @unique
+    email    String   @unique
     password String
     createAt DateTime @default(now())
-    updateAt DateTime @updatedAt
+    updateAt DateTime ? @updatedAt
 }
