@@ -27,12 +27,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv = __importStar(require("dotenv"));
+const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
+const auth_routes_1 = __importDefault(require("./api/auth/auth.routes"));
 const app = (0, express_1.default)();
-dotenv.config({ path: "../.env" });
-const port = process.env.PORT || 8080;
-const cors = require("cors");
-app.use(cors());
+dotenv.config({ path: ".env" });
+const port = process.env.PORT || 8081;
+app.use(express_1.default.json());
+app.use((0, cors_1.default)());
+app.use("/api/auth", auth_routes_1.default);
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
