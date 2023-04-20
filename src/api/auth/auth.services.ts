@@ -1,49 +1,53 @@
-import db from '../../utils/db';
-import { hashToken } from '../../utils/hashToken';
+import db from "../../utils/db";
+import { hashToken } from "../../utils/hashToken";
 
-const addRefreshTokenToWhitelist = (jti : string, refreshToken : string, userId : string) => {
+const addRefreshTokenToWhitelist = (
+  jti: string,
+  refreshToken: string,
+  userId: string
+) => {
   return db.refreshToken.create({
     data: {
       id: jti,
       hashedToken: hashToken(refreshToken),
-      userId
+      userId,
     },
   });
-}
+};
 
-const findRefreshTokenById = (id : string) => {
+const findRefreshTokenById = (id: string) => {
   return db.refreshToken.findUnique({
     where: {
       id,
     },
   });
-}
+};
 
-const deleteRefreshToken = (id : string) => {
+const deleteRefreshToken = (id: string) => {
   return db.refreshToken.update({
     where: {
       id,
     },
     data: {
-      revoked: true
-    }
+      revoked: true,
+    },
   });
-}
+};
 
-const revokeTokens = (userId : string) => {
+const revokeTokens = (userId: string) => {
   return db.refreshToken.updateMany({
     where: {
-      userId
+      userId,
     },
     data: {
-      revoked: true
-    }
+      revoked: true,
+    },
   });
-}
+};
 
 export {
   addRefreshTokenToWhitelist,
   findRefreshTokenById,
   deleteRefreshToken,
-  revokeTokens
+  revokeTokens,
 };
