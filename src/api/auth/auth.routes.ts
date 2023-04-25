@@ -18,7 +18,7 @@ import UserCreateRequest from "../users/userCreateRequest";
 import bcrypt from "bcrypt";
 import { hashToken } from "../../utils/hashToken";
 import jwt from "jsonwebtoken";
-import { authMiddleware } from "./authMiddleware";
+import { authMiddleware, authStatusMiddleware } from "./authMiddleware";
 
 dotenv.config();
 const router = express.Router();
@@ -156,15 +156,19 @@ router.post("/revokeRefreshTokens", async (req, res, next) => {
   }
 });
 
-router.get("/status", authMiddleware, async (req, res, next) => {
+router.get("/status", authStatusMiddleware, async (req, res, next) => {
   try {
-    const  userId  = req.body.tokenData.userId;
-    // data from the token that is verified
+    console.log("status called");
+    // // data from the token that is verified
     const tokenData = req.body.tokenData;
+    if (tokenData) {
+      res.send({ isUserLoggedIn: true });
+    } else {
+      res.send({ isUserLoggedIn: false });
+    }
     console.log("tokenData", tokenData);
-
-    res.send(tokenData);
   } catch (err) {
+    res.send({ isUserLoggedIn: false });
     next(err);
   }
 });
