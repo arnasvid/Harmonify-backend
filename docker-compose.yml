@@ -1,7 +1,6 @@
-version: '3'
-
+version: "3"
 services:
-  harmonify:
+  db-harmonify:
     image: postgres:15
     container_name: harmonify
     hostname: harmonify
@@ -14,3 +13,21 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: harmonify
+
+  backend-harmonify:
+    image: arnasvid/backend-harmonify
+    ports:
+       - 8080:8080
+    depends_on:
+       - db-harmonify
+    env_file:
+       - ./.env
+    container_name: backend-harmonify
+
+  frontend-harmonify:
+    image: arnasvid/frontend-harmonify
+    ports:
+       - 3000:3000
+    depends_on:
+        - backend-harmonify
+    container_name: frontend-harmonify

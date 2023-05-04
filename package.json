@@ -5,7 +5,14 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/app.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/app.js\""
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/app.js\"",
+    "start:prod": "node dist/app",
+    "start:migrate:prod": "npx prisma migrate deploy && npx prisma generate && npm run start:prod",
+    "start:migrate:seed:prod": "npx prisma migrate deploy && npx prisma generate && npm run seed:prod && npm run start:prod"
+  },
+  "prisma": {
+    "generate": true,
+    "seed": "ts-node prisma/seed"
   },
   "dependencies": {
     "@prisma/client": "^4.13.0",
