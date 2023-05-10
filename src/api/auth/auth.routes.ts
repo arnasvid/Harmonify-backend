@@ -158,6 +158,7 @@ router.post("/revokeRefreshTokens", async (req, res, next) => {
 
 router.get("/status", authStatusMiddleware, async (req, res, next) => {
   try {
+    console.log("alio");
     console.log("status called");
     // // data from the token that is verified
     const tokenData = req.body.tokenData;

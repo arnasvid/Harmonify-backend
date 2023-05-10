@@ -4,9 +4,10 @@ import { generateTokens } from '../../utils/jwt';
 import {
     addRefreshTokenToWhitelist,
 } from '../auth/auth.services';
-import { findUserByEmail, createUser } from './user.services';
+import { findUserByEmail, createUser, findUserById, findUserByToken } from './user.services';
 import UserCreateRequest from "./userCreateRequest";
 import { User } from '@prisma/client';
+import { authMiddleware, authStatusMiddleware } from "../auth/authMiddleware";
 
 const router = express.Router();
 
@@ -40,6 +41,16 @@ router.post('/register', async (req, res, next) => {
         accessToken,
         refreshToken,
       });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get('/username', authStatusMiddleware , async (req, res, next) => {
+    try {
+      const tokenData = req.body.tokenData;
+      const user = await findUserById(tokenData.userId);
+      res.json(user?.username);
     } catch (err) {
       next(err);
     }

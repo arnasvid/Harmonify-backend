@@ -43,10 +43,20 @@ const verifyToken = (token: string): { _id: string; email: string } => {
   }
 };
 
+const findUserByToken = (token: string) => {
+  const tokenData = verifyToken(token);
+  return db.user.findUnique({
+    where: {
+      id: tokenData._id,
+    },
+  });
+};
+
 export {
   findUserByEmail,
   findUserByUsername,
   findUserById,
   createUser,
   verifyToken,
+  findUserByToken,
 };

@@ -10,7 +10,7 @@ const generateAccessToken = (user : User) => {
   if (!jwtAccessToken) {
     throw new Error('JWT_ACCESS_SECRET not defined');
   }
-  return jwt.sign({userId: user.id}, jwtAccessToken, { expiresIn: '15min' });
+  return jwt.sign({userId: user.id}, jwtAccessToken, { expiresIn: '1h' });
 }
 
 const generateRefreshToken = (user: User, jti: string): string => {
