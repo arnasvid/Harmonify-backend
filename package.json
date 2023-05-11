@@ -6,7 +6,7 @@
     "build": "npx tsc",
     "start": "node dist/src/app.js",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/src/app.js\"",
-    "start:prod": "node dist/app",
+    "start:prod": "node dist/src/app",
     "start:migrate:prod": "npx prisma migrate deploy && npx prisma generate && npm run start:prod",
     "start:migrate:seed:prod": "npx prisma migrate deploy && npx prisma generate && npm run seed:prod && npm run start:prod"
   },
