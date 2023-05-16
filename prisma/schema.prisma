@@ -7,14 +7,32 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum Role {
+    ADMIN
+    USER
+}
+
 model User {
-    id            String         @id @unique @default(uuid())
-    username      String         @unique
-    email         String         @unique
-    password      String
-    refreshTokens RefreshToken[]
-    createdAt     DateTime       @default(now())
-    updatedAt     DateTime  ?     @updatedAt
+    id                  String          @id @unique @default(uuid())
+    username            String          @unique
+    email               String          @unique
+    password            String
+    refreshTokens       RefreshToken[]
+    spotifyRefreshToken String?
+    roles               Role[]          @default([USER])
+    profilePicture      String?
+    createdAt           DateTime        @default(now())
+    updatedAt           DateTime?       @updatedAt
+    Playlist            Playlist[]
+    SongScrobble        SongScrobble[]
+    FavoriteSong        FavoriteSong[]
+    SongsWeListen       SongsWeListen[]
+    UserTopArtist       UserTopArtist[]
+    UserToArtist        UserToArtist[]
+    UserTopSongs        UserTopSongs[]
+    UserToSong          UserToSong[]
+    UserTopAlbums       UserTopAlbums[]
+    UserToAlbum         UserToAlbum[]
 }
 
 model RefreshToken {
@@ -25,4 +43,175 @@ model RefreshToken {
     revoked     Boolean  @default(false)
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
+}
+
+model Playlist {
+    id        String   @id @unique @default(uuid())
+    name      String
+    userId    String
+    songs     Song[]
+    User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Album {
+    id            String          @id @unique @default(uuid())
+    title         String
+    artist        String
+    total_tracks  Int
+    songs         Song[]
+    image         String?
+    releaseDate   DateTime
+    NewRelease    NewReleases[]
+    Artist        Artist?         @relation(fields: [artistId], references: [id])
+    artistId      String?
+    FavoriteSong  FavoriteSong[]
+    TopSong50     TopSong50[]
+    SongsWeListen SongsWeListen[]
+    UserToAlbum   UserToAlbum[]
+}
+
+model SongScrobble {
+    id         String   @id @unique @default(uuid())
+    userId     String
+    user       User     @relation(fields: [userId], references: [id])
+    songId     String // Assuming songId is a unique identifier for songs
+    song       Song     @relation(fields: [songId], references: [id])
+    listenedAt DateTime
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+}
+
+model Song {
+    id            String          @id @unique @default(uuid())
+    spotifySongId String          @unique
+    title         String
+    artist        String
+    releaseDate   DateTime
+    duration      Int
+    SongScrobble  SongScrobble[]
+    TopSong50     TopSong50[]
+    NewRelease    NewReleases[]
+    FavoriteSong  FavoriteSong[]
+    Playlist      Playlist?       @relation(fields: [playlistId], references: [id])
+    playlistId    String?
+    Album         Album?          @relation(fields: [albumId], references: [id])
+    albumId       String?
+    Artist        Artist?         @relation(fields: [artistId], references: [id])
+    artistId      String?
+    SongsWeListen SongsWeListen[]
+    UserToSong    UserToSong[]
+}
+
+model Artist {
+    id           String         @id @unique @default(uuid())
+    name         String
+    songs        Song[]
+    albums       Album[]
+    createdAt    DateTime       @default(now())
+    updatedAt    DateTime       @updatedAt
+    UserToArtist UserToArtist[]
+}
+
+model TopSong50 {
+    id        String   @id @unique @default(uuid())
+    songId    String
+    song      Song     @relation(fields: [songId], references: [id])
+    albumId   String
+    album     Album    @relation(fields: [albumId], references: [id])
+    position  Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model NewReleases {
+    id        String   @id @unique @default(uuid())
+    albumId   String
+    album     Album    @relation(fields: [albumId], references: [id])
+    songId    String
+    song      Song     @relation(fields: [songId], references: [id])
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model FavoriteSong {
+    id        String   @id @unique @default(uuid())
+    userId    String
+    user      User     @relation(fields: [userId], references: [id])
+    songId    String
+    song      Song     @relation(fields: [songId], references: [id])
+    albumId   String
+    album     Album    @relation(fields: [albumId], references: [id])
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model SongsWeListen {
+    id          String   @id @unique @default(uuid())
+    userId      String
+    user        User     @relation(fields: [userId], references: [id])
+    songId      String
+    song        Song     @relation(fields: [songId], references: [id])
+    albumId     String
+    album       Album    @relation(fields: [albumId], references: [id])
+    description String
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
+
+model UserTopArtist {
+    id        String         @id @unique @default(uuid())
+    userId    String
+    user      User           @relation(fields: [userId], references: [id])
+    artists   UserToArtist[]
+    createdAt DateTime       @default(now())
+    updatedAt DateTime       @updatedAt
+}
+
+model UserToArtist {
+    userTopArtistId String
+    UserTopArtist   UserTopArtist? @relation(fields: [userTopArtistId], references: [id])
+    userId          String
+    user            User           @relation(fields: [userId], references: [id])
+    artistId        String
+    artist          Artist         @relation(fields: [artistId], references: [id])
+
+    @@unique([userId, artistId])
+}
+
+model UserTopSongs {
+    id     String       @id @unique @default(uuid())
+    userId String
+    user   User         @relation(fields: [userId], references: [id])
+    songs  UserToSong[]
+}
+
+model UserToSong {
+    UserTopSongs   UserTopSongs? @relation(fields: [userTopSongsId], references: [id])
+    userTopSongsId String?
+    userId         String
+    user           User          @relation(fields: [userId], references: [id])
+    songId         String
+    song           Song          @relation(fields: [songId], references: [id])
+
+    @@unique([userId, songId])
+}
+
+model UserTopAlbums {
+    id     String        @id @unique @default(uuid())
+    userId String
+    user   User          @relation(fields: [userId], references: [id])
+    albums UserToAlbum[]
+}
+
+model UserToAlbum {
+    UserTopAlbums   UserTopAlbums? @relation(fields: [userTopAlbumsId], references: [id])
+    userTopAlbumsId String?
+    userId          String
+    user            User           @relation(fields: [userId], references: [id])
+    albumId         String
+    album           Album          @relation(fields: [albumId], references: [id])
+
+    @@unique([userId, albumId])
 }
