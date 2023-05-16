@@ -34,12 +34,12 @@ export const RequestAccessToken = async () => {
             "Content-Type": "application/x-www-form-urlencoded",
 
         },
-        body: "grant_type=client_credentials&client_id=a637669a86b0416eaec5e5b24664f06a&client_secret=0dccfb38f9a34ab1a7ac61f9e769207a",
+        body: `grant_type=client_credentials&client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}`,
     })
     .then((response) => response.json())
     .then((data) => console.log(data));
 }
 
 export const GetGlobalTop50 = async () => {
-    
+
 }
