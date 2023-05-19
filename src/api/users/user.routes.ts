@@ -56,4 +56,15 @@ router.post('/register', async (req, res, next) => {
     }
   });
 
+  router.get('/id', authStatusMiddleware , async (req, res, next) => {
+    try {
+      const tokenData = req.body.tokenData;
+      const user = await findUserById(tokenData.userId);
+      res.json(user?.id);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+
 export default router;

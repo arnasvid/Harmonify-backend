@@ -160,10 +160,17 @@ router.get("/status", authStatusMiddleware, async (req, res, next) => {
   try {
     console.log("alio");
     console.log("status called");
-    // // data from the token that is verified
+    // // data from the token that is verifies
     const tokenData = req.body.tokenData;
     if (tokenData) {
-      res.send({ isUserLoggedIn: true });
+      const user = await findUserById(tokenData.userId);
+      if(user){
+        const isUserLoggedInWithSpotify = user.spotifyRefreshToken ? true : false;
+        const isUserAdmin = user.roles.includes("ADMIN");
+        res.send({ isUserLoggedIn: true , isUserLoggedInWithSpotify, isUserAdmin});
+        }else{
+        res.send({ isUserLoggedIn: false });
+      }
     } else {
       res.send({ isUserLoggedIn: false });
     }

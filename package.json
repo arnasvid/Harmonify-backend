@@ -26,6 +26,7 @@
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "jsonwebtoken": "^9.0.0",
+    "node-cron": "^3.0.2",
     "request-promise-native": "^1.0.9",
     "spotify-web-api-node": "^5.0.2",
     "uuid": "^9.0.0"
@@ -37,6 +38,7 @@
     "@types/http-errors": "^2.0.1",
     "@types/morgan": "^1.9.4",
     "@types/node": "^18.15.3",
+    "@types/node-cron": "^3.0.7",
     "@types/request-promise-native": "^1.0.18",
     "@types/spotify-web-api-node": "^5.0.7",
     "concurrently": "^7.6.0",

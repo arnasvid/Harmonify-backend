@@ -33,6 +33,7 @@ const findUserById = (id: string) => {
     },
   });
 };
+
 const verifyToken = (token: string): { _id: string; email: string } => {
   try {
     const jwtKey = process.env.JWT_ACCESS_SECRET as string;
@@ -52,6 +53,16 @@ const findUserByToken = (token: string) => {
   });
 };
 
+const updateUserSpotifyTokens = async (id: string, accessToken: string, refreshToken: string) => {
+  return await db.user.update({
+    where: { id },
+    data: {
+      spotifyAccessToken: accessToken,
+      spotifyRefreshToken: refreshToken,
+    },
+  });
+};
+
 export {
   findUserByEmail,
   findUserByUsername,
@@ -59,4 +70,5 @@ export {
   createUser,
   verifyToken,
   findUserByToken,
+  updateUserSpotifyTokens,
 };

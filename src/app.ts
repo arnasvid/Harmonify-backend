@@ -6,8 +6,10 @@ import { debug } from "console";
 import { authStatusMiddleware } from "./api/auth/authMiddleware";
 import users from "./api/users/user.routes";
 import SpotifyWebApi from 'spotify-web-api-node';
-import { RequestAccessToken } from "./api/spotify_general/spotify.routes";
-import spotifylogin from "./api/spotify_general/spotifylogin";
+import { RequestAccessToken } from "./api/spotifyLogin/spotify.routes";
+import spotifylogin from "./api/spotifyLogin/spotifylogin";
+import topGlobalSongs from "./api/spotifyMainInfo/topGlobalSongs";
+import db from "./utils/db";
 
 const app: Express = express();
 
@@ -21,6 +23,7 @@ app.use(cors());
 app.use("/api/auth", auth);
 app.use("/api/users", users);
 app.use("/api/spotifylogin", spotifylogin);
+app.use("/api/spotifyMainInfo", topGlobalSongs);
 
 app.get("/", (req: Request, res: Response) => {
   res.send({ message: "We did it!" });
@@ -31,6 +34,43 @@ const server = app.listen(port, () => {
 });
 
 RequestAccessToken();
+
+const onBoot = async () => {
+console.log("running a task every day");
+  const users = await db.user.findMany({
+    where: {
+      spotifyRefreshToken: {
+        not: null,
+      },
+    },
+  });
+
+  for (const user of users) {
+    console.log("USER", user);
+    console.log("Spopify refresh token", user.spotifyRefreshToken);
+
+    const tokenResponse = await fetch(
+      "http://localhost:5173/api/spotifyLogin/refresh-token",
+      {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          grant_type: "refresh_token",
+          refreshToken: user.spotifyRefreshToken,
+          userId: user.id,
+        }),
+      }
+    ).then((response) => response.json());
+
+    const accessToken = tokenResponse.access_token;
+
+  }
+};
+
+onBoot();
 
 process.on("SIGTERM", () => {
   debug("SIGTERM signal received: closing HTTP server");

@@ -18,6 +18,7 @@ model User {
     email               String          @unique
     password            String
     refreshTokens       RefreshToken[]
+    spotifyAccessToken  String?
     spotifyRefreshToken String?
     roles               Role[]          @default([USER])
     profilePicture      String?
