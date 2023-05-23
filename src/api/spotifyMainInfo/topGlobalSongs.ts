@@ -43,7 +43,7 @@ app.get("/topGlobalSongs", async (req: Request, res: Response) => {
     res.json(response);
   } catch (error) {
     console.error("Error retrieving playlist:", error)
-    res.status(500).send("Error retrieving playlist");
+    res.status(500).send("Error retrieving playlist")
   }
 });
 
@@ -82,7 +82,7 @@ app.get("/user/top-1-song", authMiddleware, async (req, res) => {
       const spotifyAccessToken = user.spotifyAccessToken;
 
       console.log("sito userio blechaspotifyAccessToken: ", spotifyAccessToken);
-      const response = await fetch("https://api.spotify.com/v1/me/top/tracks?limit=1&offset=0", {
+      const response = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=1", {
         method: "GET",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",

@@ -11,7 +11,7 @@ import db from "../../utils/db";
 import { authMiddleware, authStatusMiddleware } from "../auth/authMiddleware";
 import * as cron from "node-cron";
 
-cron.schedule("50 * * * *", async () => {
+cron.schedule("30 * * * *", async () => {
   console.log("running a task every day");
   const users = await db.user.findMany({
     where: {
