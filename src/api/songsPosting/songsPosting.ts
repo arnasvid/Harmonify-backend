@@ -109,4 +109,20 @@ router.get(`/getPostSongs`, authStatusMiddleware, async (req: Request, res: Resp
     }
 });
 
+router.delete(`/deletePostSong/:id`, authStatusMiddleware, async (req: Request, res: Response) => {
+    try{
+        const { id } = req.params;
+        const data = await db.songsWeListen.delete({
+            where: {
+                id: id,
+            },
+        });
+        res.status(200).json({ message: "Songs deleted successfully.", data });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to delete the songs." });
+    }
+});
+
 export default router;
