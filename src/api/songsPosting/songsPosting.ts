@@ -99,7 +99,7 @@ router.get(`/getPostSongs`, authStatusMiddleware, async (req: Request, res: Resp
                 song: true,
                 artist: true,
                 album: true,
-                
+                user: true,
             },
         });
         res.status(200).json({ message: "Songs retrieved successfully.", data });
