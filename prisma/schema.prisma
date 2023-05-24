@@ -106,13 +106,14 @@ model Song {
 }
 
 model Artist {
-    id           String         @id @unique @default(uuid())
-    name         String
-    songs        Song[]
-    albums       Album[]
-    createdAt    DateTime       @default(now())
-    updatedAt    DateTime       @updatedAt
-    UserToArtist UserToArtist[]
+    id            String          @id @unique @default(uuid())
+    name          String
+    songs         Song[]
+    albums        Album[]
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @updatedAt
+    UserToArtist  UserToArtist[]
+    SongsWeListen SongsWeListen[]
 }
 
 model TopSong50 {
@@ -154,6 +155,8 @@ model SongsWeListen {
     user        User     @relation(fields: [userId], references: [id])
     songId      String
     song        Song     @relation(fields: [songId], references: [id])
+    artistId    String
+    artist      Artist   @relation(fields: [artistId], references: [id])
     albumId     String
     album       Album    @relation(fields: [albumId], references: [id])
     description String

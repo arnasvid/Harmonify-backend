@@ -16,7 +16,6 @@ const client_id = process.env.CLIENT_ID;
 app.get("/topGlobalSongs", async (req: Request, res: Response) => {
   const playlistId = req.params.playlistId;
   let accessToken = await RequestAccessToken();
-  // console.log("BRUH: ",accessToken);
   try {
     // const response = await axios.get(
     //   `https://api.spotify.com/v1/playlists/${playlistId}`,

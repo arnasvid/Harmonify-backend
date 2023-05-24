@@ -10,6 +10,7 @@ import { RequestAccessToken } from "./api/spotifyLogin/spotify.routes";
 import spotifylogin from "./api/spotifyLogin/spotifylogin";
 import topGlobalSongs from "./api/spotifyMainInfo/topGlobalSongs";
 import db from "./utils/db";
+import songsPosting from "./api/songsPosting/songsPosting";
 
 const app: Express = express();
 
@@ -24,6 +25,7 @@ app.use("/api/auth", auth);
 app.use("/api/users", users);
 app.use("/api/spotifylogin", spotifylogin);
 app.use("/api/spotifyMainInfo", topGlobalSongs);
+app.use("/api/songsPosting", songsPosting)
 
 app.get("/", (req: Request, res: Response) => {
   res.send({ message: "We did it!" });
@@ -47,7 +49,7 @@ console.log("running a task every day");
 
   for (const user of users) {
     console.log("USER", user);
-    console.log("Spopify refresh token", user.spotifyRefreshToken);
+    console.log("Spotify refresh token", user.spotifyRefreshToken);
 
     const tokenResponse = await fetch(
       "http://localhost:5173/api/spotifyLogin/refresh-token",
