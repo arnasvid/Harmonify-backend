@@ -109,6 +109,26 @@ router.get(`/getPostSongs`, authStatusMiddleware, async (req: Request, res: Resp
     }
 });
 
+router.put(`/updatePostSong/:id`, authStatusMiddleware, async (req: Request, res: Response) => {
+    try{
+        const { id } = req.params;
+        const { description } = req.body;
+        const data = await db.songsWeListen.update({
+            where: {
+                id: id,
+            },
+            data: {
+                description: description,
+            },
+        });
+        res.status(200).json({ message: "Songs updated successfully.", data });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to update the songs." });
+    }
+});
+
 router.delete(`/deletePostSong/:id`, authStatusMiddleware, async (req: Request, res: Response) => {
     try{
         const { id } = req.params;
