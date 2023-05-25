@@ -5,6 +5,7 @@ import { RequestAccessToken } from "../spotifyLogin/spotify.routes";
 import db from "../../utils/db";
 import { authMiddleware, authStatusMiddleware } from "../auth/authMiddleware";
 import { findUserById } from "../users/user.services";
+import { post } from "request-promise-native";
 
 const app = express();
 
@@ -36,8 +37,6 @@ app.get("/topGlobalSongs", async (req: Request, res: Response) => {
         },
       }
     ).then((response) => response.json());
-
-    console.log("response: ",response);
 
     res.json(response);
   } catch (error) {

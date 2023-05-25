@@ -24,10 +24,7 @@ router.post(`/postSong`, authStatusMiddleware, async (req: Request, res: Respons
 
         console.log("req.body: ",req.body);
 
-        // Check if the user's token is valid and get the user's ID from the token
-        // You have to implement the `verifyTokenAndGetUserId` function
         const user = await findUserById(req.body.tokenData.userId);
-
 
         if (!user) {
           res.status(401).json({ error: "Unauthorized" });

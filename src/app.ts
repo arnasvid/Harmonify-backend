@@ -11,6 +11,7 @@ import spotifylogin from "./api/spotifyLogin/spotifylogin";
 import topGlobalSongs from "./api/spotifyMainInfo/topGlobalSongs";
 import db from "./utils/db";
 import songsPosting from "./api/songsPosting/songsPosting";
+import dataXmlPdf from "./api/dataXmlPdf/dataXmlPdf"
 
 const app: Express = express();
 
@@ -25,7 +26,8 @@ app.use("/api/auth", auth);
 app.use("/api/users", users);
 app.use("/api/spotifylogin", spotifylogin);
 app.use("/api/spotifyMainInfo", topGlobalSongs);
-app.use("/api/songsPosting", songsPosting)
+app.use("/api/songsPosting", songsPosting);
+app.use("/api/dataXmlPdf", dataXmlPdf);
 
 app.get("/", (req: Request, res: Response) => {
   res.send({ message: "We did it!" });
