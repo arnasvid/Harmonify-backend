@@ -5,13 +5,14 @@ import auth from "./api/auth/auth.routes";
 import { debug } from "console";
 import { authStatusMiddleware } from "./api/auth/authMiddleware";
 import users from "./api/users/user.routes";
-import SpotifyWebApi from 'spotify-web-api-node';
+import SpotifyWebApi from "spotify-web-api-node";
 import { RequestAccessToken } from "./api/spotifyLogin/spotify.routes";
 import spotifylogin from "./api/spotifyLogin/spotifylogin";
 import topGlobalSongs from "./api/spotifyMainInfo/topGlobalSongs";
 import db from "./utils/db";
 import songsPosting from "./api/songsPosting/songsPosting";
-import dataXmlPdf from "./api/dataXmlPdf/dataXmlPdf"
+import dataXmlPdf from "./api/dataXmlPdf/dataXmlPdf";
+import scrobble, { getRecentlyPlayed } from "./api/scrobble/scrobble";
 
 const app: Express = express();
 
@@ -28,6 +29,7 @@ app.use("/api/spotifylogin", spotifylogin);
 app.use("/api/spotifyMainInfo", topGlobalSongs);
 app.use("/api/songsPosting", songsPosting);
 app.use("/api/dataXmlPdf", dataXmlPdf);
+app.use("/api/scrobble", scrobble);
 
 app.get("/", (req: Request, res: Response) => {
   res.send({ message: "We did it!" });
@@ -40,7 +42,7 @@ const server = app.listen(port, () => {
 RequestAccessToken();
 
 const onBoot = async () => {
-console.log("running a task every day");
+  console.log("running a task every day");
   const users = await db.user.findMany({
     where: {
       spotifyRefreshToken: {
@@ -70,8 +72,21 @@ console.log("running a task every day");
     ).then((response) => response.json());
 
     const accessToken = tokenResponse.access_token;
-
   }
+
+  const otherUsers = await db.user.findMany({
+    where: {
+      spotifyAccessToken: {
+        not: null,
+      },
+    },
+  });
+
+  otherUsers.forEach(async (user) => {
+    if (user.spotifyAccessToken) {
+      getRecentlyPlayed(user.spotifyAccessToken, user.id);
+    }
+  });
 };
 
 onBoot();

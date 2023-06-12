@@ -8,6 +8,9 @@ import { findUserByEmail, createUser, findUserById, findUserByToken } from './us
 import UserCreateRequest from "./userCreateRequest";
 import { User } from '@prisma/client';
 import { authMiddleware, authStatusMiddleware } from "../auth/authMiddleware";
+// import multer from 'multer';
+import db from "../../utils/db";
+// const upload = multer({ dest: 'uploads/' });
 
 const router = express.Router();
 
@@ -65,6 +68,34 @@ router.post('/register', async (req, res, next) => {
       next(err);
     }
   });
+
+  // router.put('/uploadProfilePicture', authStatusMiddleware, async (req, res, next) => {
+  //   try {
+  //     const tokenData = req.body.tokenData;
+  //     const user = await findUserById(tokenData.userId);
   
+  //     if (!user) {
+  //       res.status(400);
+  //       throw new Error('User not found');
+  //     }
+  
+  //     if (req.file) {
+  //       const uploadedFileName = req.file.filename;
+  //       const profilePicturePath = `/uploads/${uploadedFileName}`;
+  
+  //       const updatedUser = await db.user.update({
+  //         where: { id: user.id },
+  //         data: { profilePicture: profilePicturePath },
+  //       });
+  
+  //       res.status(200).json(updatedUser);
+  //     } else {
+  //       res.status(400);
+  //       throw new Error('No file uploaded');
+  //     }
+  //   } catch (err) {
+  //     next(err);
+  //   }
+  // });
 
 export default router;
