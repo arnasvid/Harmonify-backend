@@ -13,8 +13,8 @@ const BaseURL = "/api/scrobble";
 const client_id = process.env.CLIENT_ID;
 
 
-cron.schedule("20 * * * *", async () => {
-  console.log("running a task every 20 minutes");
+cron.schedule("2 * * * *", async () => {
+  console.log("running a task every 10 minutes");
   //TODO: change to 20 minutes
   //TODO: refresh access token and then get recently played
 

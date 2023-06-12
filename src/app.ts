@@ -13,6 +13,9 @@ import db from "./utils/db";
 import songsPosting from "./api/songsPosting/songsPosting";
 import dataXmlPdf from "./api/dataXmlPdf/dataXmlPdf";
 import scrobble, { getRecentlyPlayed } from "./api/scrobble/scrobble";
+import monthlyDashboard from "./api/dashboard/monthlyDashboard";
+import halfYearDashboard from "./api/dashboard/halfYearDashboard";
+import allTimeDashboard from "./api/dashboard/allTimeDashboard";
 
 const app: Express = express();
 
@@ -30,6 +33,9 @@ app.use("/api/spotifyMainInfo", topGlobalSongs);
 app.use("/api/songsPosting", songsPosting);
 app.use("/api/dataXmlPdf", dataXmlPdf);
 app.use("/api/scrobble", scrobble);
+app.use("/api/dashboard", monthlyDashboard);
+app.use("/api/dashboard", halfYearDashboard);
+app.use("/api/dashboard", allTimeDashboard);
 
 app.get("/", (req: Request, res: Response) => {
   res.send({ message: "We did it!" });
