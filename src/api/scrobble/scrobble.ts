@@ -167,7 +167,7 @@ export const getRecentlyPlayed = async (
     });
   });
 
-  await Promise.all(newScrobbleEntities);
+  await Promise.all(newScrobbleEntities)
 
   // console.log("createdSongs: ", createdSongs);
   return response;

@@ -16,6 +16,7 @@ import scrobble, { getRecentlyPlayed } from "./api/scrobble/scrobble";
 import monthlyDashboard from "./api/dashboard/monthlyDashboard";
 import halfYearDashboard from "./api/dashboard/halfYearDashboard";
 import allTimeDashboard from "./api/dashboard/allTimeDashboard";
+import genres from "./api/dashboard/genres";
 
 const app: Express = express();
 
@@ -36,6 +37,7 @@ app.use("/api/scrobble", scrobble);
 app.use("/api/dashboard", monthlyDashboard);
 app.use("/api/dashboard", halfYearDashboard);
 app.use("/api/dashboard", allTimeDashboard);
+app.use("/api/dashboard", genres);
 
 app.get("/", (req: Request, res: Response) => {
   res.send({ message: "We did it!" });
