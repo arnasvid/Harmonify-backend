@@ -39,7 +39,7 @@ router.get("/halfYearSongs", authMiddleware, async (req, res) => {
         const accessToken = req.body.tokenData;
         const user = await findUserById(req.body.tokenData.userId);
         if (user) {
-            const spotifyAccessToken = user.spotifyAccessToken;
+            const spotifyAccessToken = user.spotifyAccessToken
 
             const response = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=medium_term&limit=5&offset=0", {
                 method: "GET",

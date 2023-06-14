@@ -5,6 +5,7 @@ import { authMiddleware, authStatusMiddleware } from "../auth/authMiddleware";
 import { findUserById } from "../users/user.services";
 import axios from "axios";
 import cron from "node-cron";
+import { Artist, SongScrobble } from "@prisma/client";
 
 const router = express();
 
@@ -12,8 +13,7 @@ const BaseURL = "/api/scrobble";
 
 const client_id = process.env.CLIENT_ID;
 
-
-cron.schedule("2 * * * *", async () => {
+cron.schedule("5 * * * *", async () => {
   console.log("running a task every 10 minutes");
   //TODO: change to 20 minutes
   //TODO: refresh access token and then get recently played
@@ -32,25 +32,197 @@ cron.schedule("2 * * * *", async () => {
         user.id,
         user.spotifyAccessToken
       );
-      console.log("response: ", response);
     }
   });
 });
 
+router.get("/weekly-activity", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.body.tokenData.userId;
+    const user = await findUserById(userId);
+    if (!user) return res.status(404).send("No user found");
+    const spotifyAccessToken = user.spotifyAccessToken;
+
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const lastWeekScrobbles = await db.songScrobble.findMany({
+      where: {
+        AND: [{ userId: userId }, { listenedAt: { gte: lastWeek } }],
+      },
+      include: {
+        song: {
+          include: {
+            Artist: true,
+          },
+        },
+      },
+    });
+
+    const lastWeekScrobblesFromSpotify = await Promise.all(
+      lastWeekScrobbles.map(async (scrobble) => {
+        const response = await fetch(
+          `https://api.spotify.com/v1/tracks/${scrobble.song.spotifySongId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${spotifyAccessToken}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          }
+        );
+        return response.json();
+      })
+    );
+
+    res.json(lastWeekScrobblesFromSpotify);
+  } catch (error) {
+    console.error("Error retrieving weekly activity:", error);
+    res.status(500).send("Error retrieving weekly activity");
+  }
+});
+
+router.get("/top-weekly-genres", authMiddleware, async (req, res) => {
+  try {
+    const accessToken = req.body.tokenData; // Get the accessToken after using authMiddleware
+    const userId = req.body.tokenData.userId;
+    const user = await findUserById(userId);
+    if (!user) return res.status(404).send("No user found");
+
+    const spotifyAccessToken = user.spotifyAccessToken;
+    if (!spotifyAccessToken)
+      return res.status(404).send("No spotify access token found");
+
+    const topArtistsFromSpotify = await getTopWeeklyArtists(
+      userId,
+      spotifyAccessToken
+    );
+    const topGenres = topArtistsFromSpotify.map((artist) => artist.genres);
+    let genreMap = new Map<string, number>();
+
+    topGenres.forEach((genres) => {
+      genres.forEach((genre: any) => {
+        if (genreMap.has(genre)) {
+          genreMap.set(genre, (genreMap.get(genre) || 0) + 1);
+        } else {
+          genreMap.set(genre, 1);
+        }
+      });
+    });
+
+    const sortedMap = new Map(
+      [...genreMap.entries()].sort((a, b) => b[1] - a[1])
+    );
+
+    let genreArrayWithCount: { genre: string; count: number }[] = [];
+
+    sortedMap.forEach((value, key) => {
+      genreArrayWithCount.push({ genre: key, count: value });
+    });
+
+    res.json(genreArrayWithCount);
+  } catch (error) {
+    console.error("Error retrieving top 1 song:", error);
+    res.status(500).send("Error retrieving top 1 song");
+  }
+});
+
+router.get("/top-weekly-artists", authMiddleware, async (req, res) => {
+  try {
+    const accessToken = req.body.tokenData; // Get the accessToken after using authMiddleware
+    const userId = req.body.tokenData.userId;
+    const user = await findUserById(userId);
+    if (!user) return res.status(404).send("No user found");
+
+    const spotifyAccessToken = user.spotifyAccessToken;
+    if (!spotifyAccessToken)
+      return res.status(404).send("No spotify access token found");
+
+    const topArtistsFromSpotify = await getTopWeeklyArtists(
+      userId,
+      spotifyAccessToken
+    );
+    res.json(topArtistsFromSpotify);
+  } catch (error) {
+    console.error("Error retrieving top 1 song:", error);
+    res.status(500).send("Error retrieving top 1 song");
+  }
+});
+
+const getTopWeeklyArtists = async (userId: string, accessToken: string) => {
+  const lastWeek = new Date();
+  lastWeek.setDate(lastWeek.getDate() - 7);
+
+  const lastWeekScrobbles = await db.songScrobble.findMany({
+    where: {
+      AND: [{ userId: userId }, { listenedAt: { gte: lastWeek } }],
+    },
+    include: {
+      song: {
+        include: {
+          Artist: true,
+        },
+      },
+    },
+  });
+
+  const artists = lastWeekScrobbles.map((scrobble) => scrobble.song.Artist);
+  let artistMap = new Map<string, number>();
+
+  artists.forEach((artist) => {
+    if (artist) {
+      if (artistMap.has(artist.id)) {
+        artistMap.set(artist.id, (artistMap.get(artist.id) || 0) + 1);
+      } else {
+        artistMap.set(artist.id, 1);
+      }
+    }
+  });
+
+  const sortedMap = new Map(
+    [...artistMap.entries()].sort((a, b) => b[1] - a[1])
+  );
+
+  console.log("sortedMap: ", sortedMap);
+
+  const topArtistIds = Array.from(sortedMap.keys()).slice(0, 5);
+
+  const topArtists: Artist[] = await db.artist.findMany({
+    where: {
+      id: {
+        in: topArtistIds,
+      },
+    },
+  });
+
+  const topArtistsFromSpotify = await Promise.all(
+    topArtists.map(async (artist) => {
+      const response = await fetch(
+        `https://api.spotify.com/v1/artists/${artist.spotifyArtistId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
+
+      return response.json();
+    })
+  );
+  console.log("topArtistsFromSpotify: ", topArtistsFromSpotify);
+  return topArtistsFromSpotify;
+};
+
 router.get("/recently-played", authMiddleware, async (req, res) => {
   try {
     const accessToken = req.body.tokenData; // Get the accessToken after using authMiddleware
-    console.log("accessToken: ", accessToken);
 
     const user = await findUserById(req.body.tokenData.userId);
     if (user) {
       console.log("user: ", user.username);
       const spotifyAccessToken = user.spotifyAccessToken;
-
-      console.log(
-        "alio mesk klaida, aciu spotifyAccessToken: ",
-        spotifyAccessToken
-      );
 
       if (!spotifyAccessToken)
         return res.status(404).send("No spotifyAccessToken found for the user");
@@ -110,19 +282,25 @@ export const getRecentlyPlayed = async (
     },
   });
 
+  console.log("userLastListenedSong: ", userLastListenedSong);
   // xz kas cia vyksta
   if (userLastListenedSong) {
+    console.log(
+      "response.items: ",
+      response.items.sort((a: any, b: any) => a.played_at - b.played_at)[0]
+    );
     const lastRecordedSong = response.items.find(
       (item) =>
         item.track.id === userLastListenedSong.song.spotifySongId &&
         item.played_at === userLastListenedSong.listenedAt.toISOString()
     );
 
+    console.log("lastRecordedSong: ", lastRecordedSong);
     if (lastRecordedSong) {
       const lastRecordedSongIndex = response.items.indexOf(lastRecordedSong);
 
       if (lastRecordedSongIndex && lastRecordedSongIndex > 0) {
-        const newScrobbles = response.items.slice(0, lastRecordedSongIndex);
+        const newScrobbles = response.items.slice(0, lastRecordedSongIndex)
 
         const newScrobbleEntities = newScrobbles.map(async (item) => {
           const song = await db.song.findFirst({
@@ -143,8 +321,29 @@ export const getRecentlyPlayed = async (
           }
         });
 
-        await Promise.all(newScrobbleEntities);
+        await Promise.all(newScrobbleEntities)
       }
+    } else { 
+      const newScrobbleEntities = response.items.map(async (item) => {
+        const song = await db.song.findFirst({
+          where: {
+            spotifySongId: item.track.id,
+          },
+        });
+  
+        if (song) {
+          let scrobble = await db.songScrobble.create({
+            data: {
+              userId: userId,
+              songId: song.id,
+              listenedAt: new Date(item.played_at),
+            },
+          });
+          return scrobble;
+        }
+      });
+  
+      await Promise.all(newScrobbleEntities);
     }
 
     // console.log("createdSongs: ", createdSongs);
@@ -167,7 +366,7 @@ export const getRecentlyPlayed = async (
     });
   });
 
-  await Promise.all(newScrobbleEntities)
+  await Promise.all(newScrobbleEntities);
 
   // console.log("createdSongs: ", createdSongs);
   return response;
