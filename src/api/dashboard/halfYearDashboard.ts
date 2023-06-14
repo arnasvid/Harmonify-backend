@@ -24,7 +24,7 @@ router.get("/halfYearArtists", authMiddleware, async (req, res) => {
                     Authorization: "Bearer " + spotifyAccessToken,
                 },
             }).then((response) => response.json());
-            res.json(response);
+            res.json(response)
         } else {
             res.status(404).send("No top half-year artists found for the user");
         }

@@ -59,10 +59,55 @@ router.get("/weekly-activity", authMiddleware, async (req, res) => {
       },
     });
 
-    const lastWeekScrobblesFromSpotify = await Promise.all(
-      lastWeekScrobbles.map(async (scrobble) => {
+    const lastWeekScrobbleIds = await Promise.all(
+      lastWeekScrobbles.map(async (scrobble) => scrobble.song.spotifySongId)
+    );
+
+    const lastWeekScrobblesFromSpotify: any[] = [];
+    // split array into chunks of 50
+    const chunkSize = 50;
+    for (let i = 0; i < lastWeekScrobbleIds.length; i += chunkSize) {
+      const lastWeekScrobblesFromSpotify1 = await fetch(
+        `https://api.spotify.com/v1/tracks?ids=${lastWeekScrobbleIds
+          .splice(0, 49)
+          .join("%2C")}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${spotifyAccessToken}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      ).then((response) => response.json());
+
+      lastWeekScrobblesFromSpotify.push(
+        ...lastWeekScrobblesFromSpotify1.tracks
+      );
+    }
+
+    // calculate top 5 songs from lastWeekScrobblesFromSpotify, by counting the number of times each song appears in the array and then sorting the array by the count and returning the top 5
+
+    // count the number of time a song appears in the array
+    const topSongsMap = new Map<any, number>();
+    lastWeekScrobblesFromSpotify.forEach((song: any) => {
+      if (topSongsMap.has(song.id)) {
+        topSongsMap.set(song.id, (topSongsMap.get(song.id) || 0) + 1);
+      } else {
+        topSongsMap.set(song.id, 1);
+      }
+    });
+
+    // sort the map by the count
+    const sortedMap = new Map(
+      [...topSongsMap.entries()].sort((a, b) => b[1] - a[1])
+    );
+
+    const top5SongsIdArray = Array.from(sortedMap.keys()).slice(0, 5);
+
+    const top5Songs = await Promise.all(
+      top5SongsIdArray.map(async (songId) => {
         const response = await fetch(
-          `https://api.spotify.com/v1/tracks/${scrobble.song.spotifySongId}`,
+          `https://api.spotify.com/v1/tracks/${songId}`,
           {
             method: "GET",
             headers: {
@@ -75,7 +120,41 @@ router.get("/weekly-activity", authMiddleware, async (req, res) => {
       })
     );
 
-    res.json(lastWeekScrobblesFromSpotify);
+    res.json(top5Songs);
+
+    // get the top 5 songs
+    // const top5Songs = Array.from(sortedMap.keys()).slice(0, 5);
+
+    // const top5Songs1 = lastWeekScrobblesFromSpotify.reduce((acc, curr) => {
+    //   if (typeof acc[curr] == "undefined") {
+    //     acc[curr] = 1;
+    //   } else {
+    //     acc[curr] += 1;
+    //   }
+    //   return acc;
+    // }, {});
+
+    // const topSongs = lastWeekScrobbles.sort(
+    //   (a: any, b: any) => b.count - a.count
+    // );
+
+    // const sortedTop5Songs = Object.keys(top5Songs)
+    //   .sort((a: any, b: any) => top5Songs[b] - top5Songs[a])
+    //   .slice(0, 5);
+
+    // const sorted = top5Songs.sort((a: any, b: any) => b.count - a.count);
+
+    // console.log("sorted 5 songs", sortedTop5Songs);
+
+    // const top5SongsWithCount = sortedTop5Songs.map((song) => {
+    //   return { song: song, count: top5Songs[song] };
+    // });
+
+    // tik penkios dainos su skaiciumi grojimo
+    // res.json(top5Songs);
+
+    // visos per savaite klausytos dainos
+    // res.json(lastWeekScrobblesFromSpotify);
   } catch (error) {
     console.error("Error retrieving weekly activity:", error);
     res.status(500).send("Error retrieving weekly activity");
@@ -300,7 +379,7 @@ export const getRecentlyPlayed = async (
       const lastRecordedSongIndex = response.items.indexOf(lastRecordedSong);
 
       if (lastRecordedSongIndex && lastRecordedSongIndex > 0) {
-        const newScrobbles = response.items.slice(0, lastRecordedSongIndex)
+        const newScrobbles = response.items.slice(0, lastRecordedSongIndex);
 
         const newScrobbleEntities = newScrobbles.map(async (item) => {
           const song = await db.song.findFirst({
@@ -321,16 +400,16 @@ export const getRecentlyPlayed = async (
           }
         });
 
-        await Promise.all(newScrobbleEntities)
+        await Promise.all(newScrobbleEntities);
       }
-    } else { 
+    } else {
       const newScrobbleEntities = response.items.map(async (item) => {
         const song = await db.song.findFirst({
           where: {
             spotifySongId: item.track.id,
           },
         });
-  
+
         if (song) {
           let scrobble = await db.songScrobble.create({
             data: {
@@ -342,7 +421,7 @@ export const getRecentlyPlayed = async (
           return scrobble;
         }
       });
-  
+
       await Promise.all(newScrobbleEntities);
     }
 
