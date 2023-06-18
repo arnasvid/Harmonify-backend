@@ -2,6 +2,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import db from "../../utils/db";
 import UserCreateRequest from "./userCreateRequest";
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
 
 const findUserByEmail = (email: string) => {
   return db.user.findUnique({
@@ -53,7 +55,11 @@ const findUserByToken = (token: string) => {
   });
 };
 
-const updateUserSpotifyTokens = async (id: string, accessToken: string, refreshToken: string) => {
+const updateUserSpotifyTokens = async (
+  id: string,
+  accessToken: string,
+  refreshToken: string
+) => {
   return await db.user.update({
     where: { id },
     data: {
@@ -61,6 +67,17 @@ const updateUserSpotifyTokens = async (id: string, accessToken: string, refreshT
       spotifyRefreshToken: refreshToken,
     },
   });
+};
+
+const imageBuffer = (filePath: string) => {
+  try {
+    if (existsSync(join(process.cwd(), `${filePath}`))) {
+      return readFileSync(join(process.cwd(), `${filePath}`));
+    }
+    throw new Error("File not found");
+  } catch (err) {
+    throw new Error("File not found");
+  }
 };
 
 export {
@@ -71,4 +88,5 @@ export {
   verifyToken,
   findUserByToken,
   updateUserSpotifyTokens,
+  imageBuffer
 };
