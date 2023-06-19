@@ -23,7 +23,7 @@ cron.schedule("30 * * * *", async () => {
 
   for (const user of users) {
     console.log("USER", user);
-    console.log("Spopify refresh token", user.spotifyRefreshToken);
+
 
     const tokenResponse = await fetch(
       "http://localhost:5173/api/spotifyLogin/refresh-token",
